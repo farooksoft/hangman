@@ -1,0 +1,210 @@
+<!-- game.html -->
+<!DOCTYPE html>
+<html lang="en">
+   <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Hangman Game</title>
+      <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+      <!-- Stylesheet -->
+      <link rel="stylesheet" type="text/css" href="style.css">
+   </head>
+   <body>
+      <div class="container game-container">
+      <h2>Welcome <span id="user-name"></span> (<span id="emp-ID"></span>)</h2>
+      <p id="datetime"></p>
+      <script>
+         // Get current date and time
+           function updateDateTime() {
+                  const now = new Date();
+                  const dateString = now.toLocaleString(); // Gets the date and time in local format
+                  document.getElementById('datetime').textContent = dateString;
+              }
+          // Call the function immediately to show date and time on page load
+              updateDateTime();
+         
+          // Update the time every 1000 milliseconds (1 second)
+              setInterval(updateDateTime, 1000);
+      </script>
+      <div class="mt-4">
+         <h4>Wrong Guesses (<span id="wrong-guesses-count">0</span>/6)</h4>
+         <div id="wrong-guesses"></div>
+      </div>
+      <div id="hangman">
+         <!-- Hangman image will be updated here -->
+         <img class="" src="images/0.png" alt="" id="hangman-img">
+         <p>Guess the Insurance Words</p>
+      </div>
+      <div id="word" class="word-container">_ _ _ _ _</div>
+      <!-- Alphabet buttons will go here -->
+      <div class="mt-4">
+         <p>Guess a letter:</p>
+         <div id="alphabet-container" class="mb-4">
+            <script>
+               function generateButtons() {
+               let buttonsHTML = 'abcdefghijklmnopqrstuvwxyz'.split('').map(letter =>
+               `
+               <button
+                   class="btn btn-lg btn-primary m-2"
+                   id='` + letter + `'
+                   onClick="handleGuess('` + letter + `')"
+               >
+                   ` + letter + `
+               </button>
+               `).join('');
+               
+               document.getElementById('keyboard').innerHTML = buttonsHTML;
+               }
+            </script>
+         </div>
+         <div class="mt-4">
+          <div id="message"></div>
+          <div id="message1"></div>
+            <button class="btn btn-secondary" id="finish-game" style="display: none;" onclick="finishGame()">Finish</button> 
+         </div>
+      </div>
+      <script>
+         const words = ["premium", "deductible", "claim", "underwriting", "coverage", "policy", "actuary", "liability", 
+         "endorsement", "exclusion", "risk", "adjuster", "beneficiary", "reimbursement", "copay", "excess", 
+         "insurance", "broker", "insurer", "insurability", "claimant", "replacement", "subrogation", "insurtech", 
+         "flood", "earthquake", "homeowners", "auto", "life", "health", "disability", "travel", "reinsurance", "indemnity", 
+         "liability", "umbrella", "riskassessment", "fidelity", "bond", "businessinterruption", "criticalillness", "termlife", 
+         "wholelife", "longtermcare", "accident", "policyholder", "adjustment", "benefit", "insuranceagent", "network", "groupinsurance", 
+         "personalinjury", "hazard", "comprehensive", "collision", "thirdparty", "firstparty", "premiumpayment", "claimsettlement", 
+         "policylimits", "exposure", "insurancecarrier", "damage", "costsharing", "sublimit", "claimsmade", "occurrence", "loss", 
+         "policyrenewal", "disclaimer", "coinsurance", "termsandconditions", "rider", "contestability", "investments", "mortgageinsurance", 
+         "underinsured", "overinsurance", "wholelife", "termpolicy", "productliability", "catastrophiccoverage", "profitsharing", "selfinsurance", 
+         "claimrejection", "preexistingcondition", "waitingperiod", "medicalunderwriting", "financialstrength", "solvency", "trustfund", 
+         "valueatrisk", "insurancepool", "policyexclusion", "adjustmentclause", "mortality", "claimsadjuster", "benefitpayout", "actuarialtable", 
+         "insurancefraud", "policyholderdividend", "insurableinterest", "noclaimsbonus", "thirdpartyliability", "totalloss", "rider", 
+         "policyendorsement", "premiumrefund", "claimshistory", "excessliability", "adjustmentperiod", "deductiblelimit", "insurancefraud", 
+         "outofpocket", "policylapse", "liabilitycoverage", "medicalexpense", "personalproperty", "lossprevention", "professionalliability", 
+         "motorvehicleinsurance", "homeinsurance", "healthinsurance", "lifeinsurance", "liabilityinsurance", "commercialinsurance", 
+         "umbrellainsurance", "floodinsurance", "catastrophicinsurance", "earthquakeinsurance", "businessinsurance", "insurancepolicyholder", 
+         "underinsuredmotorist", "autocollisioncoverage", "autoliabilitycoverage", "autocomprehensive", "insurancepremiumincrease", 
+         "periodicreview", "exclusionclause", "pre-existingexclusions", "waitingperiodexclusion", "fullcoverage", "short-termdisability", 
+         "long-termdisability", "insuranceclaimprocessing", "primaryinsurer", "secondaryinsurer", "secondarycoverage", "reinsurancepolicy", 
+         "reinsurancebroker", "medicalinsurance", "grouphealthinsurance", "personalhealthinsurance", "coveragelimit", "claimsprocess", 
+         "adjusterreport", "noclaimsdiscount", "paymentschedule", "protectionplan", "insurancefraudinvestigation", "exclusionrider", 
+         "riskpooling", "lifeinsurancerider", "totaldisability", "partialdisability", "keypersoninsurance", "cyberinsurance", "directinsurance", 
+         "indirectinsurance", "deductiblereimbursement", "liabilityassessment", "mortgageprotection", "liabilitylimits", "underwritingprocess", 
+         "insurancefraudrisk", "medicalunderwriting", "insuranceregulations", "costofinsurance", "insurancereserve", "actuarialrisk", 
+         "premiumstructure", "insurancesettlement", "lifeinsurancebeneficiary", "medicalreimbursement", "employeebenefits", "rentalcarinsurance", 
+         "claimsadjusterreport", "premiumdiscount", "variablelifeinsurance", "wholelifepolicy", "termlifepolicy", "survivorbenefits", 
+         "longtermcareinsurance", "automobileinsurance", "insurancecommission", "premiumrefund", "insurancebenefits", "claimapproval", 
+         "actuarialanalysis", "insuranceprovider", "adjustmentrequest", "personallabilityinsurance", "accidentinsurance", "policyholderrights", 
+         "claimsrejectionreasons", "cashvalue", "medicalbills", "insuranceplan", "riderinclusion", "insurancerider", "accidentaldeathbenefit", 
+         "nofaultinsurance", "voluntaryinsurance", "third-partyinsurance", "insuranceterm", "automobileliability", "businessliability", 
+         "lifepolicyholder", "claimsdenial", "appraisalvalue", "endorsementmodification", "insurancecompany", "policyholderprotection", 
+         "dependentscoverage", "childrensinsurance", "eldercareinsurance", "hospitalcoverage", "substandardrisk", "propertyinsurance", 
+         "insuranceexclusions", "accidentreport", "mortalityrate", "lifepolicyrenewal", "insurancecoveragegap", "insuranceportfolio", 
+         "grouplifeinsurance", "familyhealthinsurance", "grouppolicy", "voluntarybenefits", "lossassessment", "claimsreserves", 
+         "investmentlinkedinsurance", "policiescomparison", "claimsassistance", "totalpayout", "contractterm", "insurancesubscription", 
+         "insurancepolicyholder", "coverageoptions", "homecontentinsurance", "lifeinsuranceunderwriting", "financialprotection", "insurancetrustee", 
+         "terminsurance", "hazardassessment", "personalaccidentpolicy", "maximumbenefit", "insurancedeclaration", "premiumincrease", 
+         "fraudulentclaims", "vehicleinsurance", "propertyloss", "fireinsurance", "workplaceinsurance", "occupationalcoverage", "disabilitybenefits", 
+         "accidentbenefits", "medicalinsurancepolicy", "replacementcost", "scheduledcoverage", "indemnification", "forcemajeure",
+         "annualpremium", "cancellationclause", "groupbenefits", "accidentalinjury", "lifeinsurancepremium", "mortgageinsurancepolicy"];
+         const selectedWord = words[Math.floor(Math.random() * words.length)];
+         const wordLength = selectedWord.length;
+         let guessedLetters = [];
+         let wrongGuesses = 0;
+         const maxWrongGuesses = 6;
+         
+         // Initialize the page
+         document.getElementById('user-name').textContent = localStorage.getItem('userName');
+         document.getElementById('emp-ID').textContent = localStorage.getItem('userEmpId');
+         
+         // Function to update the word display
+         function updateWordDisplay() {
+           let displayWord = '';
+           for (let i = 0; i < wordLength; i++) {
+             if (guessedLetters.includes(selectedWord[i])) {
+               displayWord += selectedWord[i] + ' ';
+             } else {
+               displayWord += '_ ';
+             }
+           }
+           document.getElementById('word').textContent = displayWord.trim();
+         }
+         
+         // Function to update hangman image
+         function updateHangmanImage() {
+             //const hangmanImage = document.getElementById('hangman-img');
+           //hangmanImage.src = `images/hangman${wrongGuesses}.png`;
+           console.log(wrongGuesses);
+           document.getElementById('hangman-img').src = 'images/'+wrongGuesses +'.png';
+         
+         }
+         
+         // Function to update the wrong guesses list
+         function updateWrongGuesses() {
+           document.getElementById('wrong-guesses').textContent = guessedLetters.filter(letter => !selectedWord.includes(letter)).join(', ');
+           document.getElementById('wrong-guesses-count').textContent = wrongGuesses;
+         }
+         
+         // Function to generate alphabet buttons
+         function generateAlphabetButtons() {
+           const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
+           const alphabetContainer = document.getElementById('alphabet-container');
+           alphabet.forEach(letter => {
+             const btn = document.createElement('button');
+             btn.classList.add('btn', 'btn-outline-primary', 'alphabet-btn');
+             btn.textContent = letter;
+             btn.addEventListener('click', function() {
+               handleGuess(letter.toLowerCase(), btn);
+             });
+             alphabetContainer.appendChild(btn);
+           });
+         }
+         
+         // Handle letter guess
+         function handleGuess(letter, btn) {
+           if (guessedLetters.includes(letter)) {
+             return; // Ignore if the letter was already guessed
+           }
+           guessedLetters.push(letter);
+           btn.disabled = true;
+         
+           if (selectedWord.includes(letter)) {
+             updateWordDisplay();
+           } else {
+             wrongGuesses++;
+             updateHangmanImage();
+             updateWrongGuesses();
+           }
+         
+           // Check for win or loss
+           if (wrongGuesses === maxWrongGuesses) {
+             finishGame(false);
+           } else if (selectedWord.split('').every(letter => guessedLetters.includes(letter))) {
+             finishGame(true);
+           }
+         }
+         
+         // Function to finish the game
+         function finishGame(isWinner) {
+           const finishButton = document.getElementById('finish-game');
+         //   finishButton.style.display = 'block';
+           
+           if (isWinner) {
+             document.getElementById('message').textContent = `Congratulations! You won 100 SUVI.`;
+             document.getElementById('message1').textContent = `Scan QR to Play Again`;
+           } else {
+             document.getElementById('message').textContent = `Oops... Game Over! The word was: ${selectedWord}`;
+             document.getElementById('message1').textContent = `Scan QR to Play Again`;
+           }
+           
+           // Disable all alphabet buttons
+           document.querySelectorAll('.alphabet-btn').forEach(button => {
+             button.disabled = true;
+           });
+         }
+         
+         // Initialize the game
+         generateAlphabetButtons();
+         updateWordDisplay();
+         updateHangmanImage();
+      </script>
+   </body>
+</html>

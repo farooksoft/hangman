@@ -1,0 +1,48 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hangman Game - Login</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" type="text/css" href="index.css">
+</head>
+<body >
+
+  <div class="container">
+    <h2 class="text-center">SAPIENS University Hangman Game</h2>
+    <form id="login-form" class="mt-4">
+      <div class="mb-3">
+        <label for="name" class="form-label" font>Full Name</label>
+        <input type="text" class="form-control" id="name" required>
+      </div>
+      <div class="mb-3">
+        <label for="empId" class="form-label">Employee ID</label>
+        <input type="text" class="form-control" id="empId" required>
+      </div>
+      <button type="submit" class="btn btn-primary w-100">Start Game</button>
+    </form>
+  </div>
+
+  <script>
+    document.getElementById('login-form').addEventListener('submit', function(event) {
+      event.preventDefault();
+      const name = document.getElementById('name').value;
+      const empId = document.getElementById('empId').value;
+
+      if (name && empId) {
+        // Store name and empId in localStorage
+        localStorage.setItem('userName', name);
+        localStorage.setItem('userEmpId', empId);
+        
+        // Redirect to the game page
+        window.location.href = 'game.html';
+      } else {
+        alert('Please enter both Name and Employee ID.');
+      }
+    });
+  </script>
+  
+</body>
+</html>
